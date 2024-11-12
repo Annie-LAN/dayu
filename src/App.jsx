@@ -16,28 +16,25 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { MapPin } from "lucide-react";
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 
-// Theme configuration remains the same
-const darkTheme = createTheme({
+// Light theme configuration
+const lightTheme = createTheme({
   palette: {
-    mode: "dark",
+    mode: "light",
     primary: {
-      main: "#60a5fa",
+      main: "#3b82f6", // Light blue
     },
     secondary: {
-      main: "#f472b6",
+      main: "#22c55e", // Light green
     },
     background: {
-      default: "#1e293b",
-      paper: "#334155",
+      default: "#f8fafc",
+      paper: "#ffffff",
     },
     text: {
-      primary: "#f1f5f9",
-      secondary: "#cbd5e1",
+      primary: "#1e293b",
+      secondary: "#64748b",
     },
-    action: {
-      hover: "rgba(255, 255, 255, 0.08)",
-    },
-    divider: "rgba(255, 255, 255, 0.12)",
+    divider: "rgba(0, 0, 0, 0.12)",
   },
   components: {
     MuiPaper: {
@@ -51,7 +48,15 @@ const darkTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: "none",
-          backgroundColor: "#0f172a",
+          backgroundColor: "#ffffff",
+          color: "#1e293b",
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 500,
         },
       },
     },
@@ -65,6 +70,7 @@ const MapContainer = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius,
   overflow: "hidden",
+  border: `1px solid ${theme.palette.divider}`,
 }));
 
 const IssuesList = styled(Paper)(({ theme }) => ({
@@ -72,6 +78,7 @@ const IssuesList = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius,
   overflow: "hidden",
+  border: `1px solid ${theme.palette.divider}`,
 }));
 
 const ScrollableList = styled(List)(({ theme }) => ({
@@ -85,7 +92,7 @@ const ScrollableList = styled(List)(({ theme }) => ({
     webkitBoxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
   },
   "&::-webkit-scrollbar-thumb": {
-    backgroundColor: "rgba(255,255,255,.2)",
+    backgroundColor: "rgba(0,0,0,.1)",
     borderRadius: "4px",
   },
 }));
@@ -144,7 +151,7 @@ const MapMarker = ({ position, isHighlighted }) => (
         isHighlighted ? "scale(1.25)" : "scale(1)"
       }`,
       transition: "transform 0.2s",
-      color: isHighlighted ? "primary.main" : "text.primary",
+      color: isHighlighted ? "primary.main" : "text.secondary",
       cursor: "pointer",
     }}
   >
@@ -197,6 +204,7 @@ const SafetyApp = () => {
           label={type}
           size="small"
           color={getChipColor(type)}
+          variant="outlined"
           sx={{ ml: 1 }}
         />
       </Box>
@@ -221,11 +229,11 @@ const SafetyApp = () => {
   );
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={lightTheme}>
       <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-        <AppBar position="static" elevation={4}>
+        <AppBar position="static" elevation={1}>
           <Toolbar>
-            <Typography variant="h6" component="div">
+            <Typography variant="h6" component="div" color="text.primary">
               Non-Crime Safety App
             </Typography>
           </Toolbar>
@@ -234,7 +242,7 @@ const SafetyApp = () => {
         <Container maxWidth="xl" sx={{ mt: 3 }}>
           <Box sx={{ display: "flex", gap: 3, height: "calc(100vh - 100px)" }}>
             <Box sx={{ width: "75%", height: "100%" }}>
-              <MapContainer elevation={3}>
+              <MapContainer elevation={0}>
                 <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
                   <Map
                     defaultZoom={13}
@@ -258,9 +266,9 @@ const SafetyApp = () => {
             </Box>
 
             <Box sx={{ width: "25%", height: "100%" }}>
-              <IssuesList elevation={3}>
+              <IssuesList elevation={0}>
                 <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-                  <Typography variant="h6" component="div">
+                  <Typography variant="h6" component="div" color="text.primary">
                     Safety Issues
                   </Typography>
                 </Box>
