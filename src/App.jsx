@@ -14,29 +14,30 @@ import {
 import { styled } from "@mui/material/styles";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { MapPin } from "lucide-react";
+import { APIProvider, Map } from "@vis.gl/react-google-maps";
 
-// Updated theme with lighter colors
+// Theme configuration remains the same
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#60a5fa", // Brighter blue
+      main: "#60a5fa",
     },
     secondary: {
-      main: "#f472b6", // Brighter pink
+      main: "#f472b6",
     },
     background: {
-      default: "#1e293b", // Lighter background
-      paper: "#334155", // Lighter surface
+      default: "#1e293b",
+      paper: "#334155",
     },
     text: {
-      primary: "#f1f5f9", // Brighter text
-      secondary: "#cbd5e1", // Brighter secondary text
+      primary: "#f1f5f9",
+      secondary: "#cbd5e1",
     },
     action: {
-      hover: "rgba(255, 255, 255, 0.08)", // Slightly more visible hover state
+      hover: "rgba(255, 255, 255, 0.08)",
     },
-    divider: "rgba(255, 255, 255, 0.12)", // Slightly more visible divider
+    divider: "rgba(255, 255, 255, 0.12)",
   },
   components: {
     MuiPaper: {
@@ -50,19 +51,20 @@ const darkTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: "none",
-          backgroundColor: "#0f172a", // Darker app bar for contrast
+          backgroundColor: "#0f172a",
         },
       },
     },
   },
 });
 
-// Rest of the styled components remain the same
+// Styled components
 const MapContainer = styled(Paper)(({ theme }) => ({
   height: "100%",
   position: "relative",
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius,
+  overflow: "hidden",
 }));
 
 const IssuesList = styled(Paper)(({ theme }) => ({
@@ -99,7 +101,7 @@ const StyledListItem = styled(ListItem)(({ theme }) => ({
   },
 }));
 
-// Sample data remains the same
+// Sample data
 const DUMMY_ISSUES = [
   {
     id: 1,
@@ -133,9 +135,30 @@ const DUMMY_ISSUES = [
   },
 ];
 
+// Custom Map Marker Component
+const MapMarker = ({ position, isHighlighted }) => (
+  <Box
+    sx={{
+      position: "absolute",
+      transform: `translate(-50%, -50%) ${
+        isHighlighted ? "scale(1.25)" : "scale(1)"
+      }`,
+      transition: "transform 0.2s",
+      color: isHighlighted ? "primary.main" : "text.primary",
+      cursor: "pointer",
+    }}
+  >
+    <MapPin />
+  </Box>
+);
+
 const SafetyApp = () => {
   const [hoveredIssue, setHoveredIssue] = useState(null);
   const [selectedIssue, setSelectedIssue] = useState(null);
+  const [mapCenter, setMapCenter] = useState({
+    lat: 40.7128,
+    lng: -74.006,
+  });
 
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString("en-US", {
@@ -153,6 +176,11 @@ const SafetyApp = () => {
       default:
         return "default";
     }
+  };
+
+  const handleIssueSelect = (issue) => {
+    setSelectedIssue(issue.id);
+    setMapCenter(issue.coordinates);
   };
 
   const IssueTitle = ({ title, type }) => (
@@ -192,45 +220,6 @@ const SafetyApp = () => {
     </Typography>
   );
 
-  const MapPlaceholder = () => (
-    <Box
-      sx={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Box component="span" sx={{ color: "text.secondary" }}>
-        Map Component Would Go Here
-      </Box>
-      {DUMMY_ISSUES.map((issue) => (
-        <Box
-          key={issue.id}
-          sx={{
-            position: "absolute",
-            p: 1,
-            transition: "all 0.2s",
-            transform:
-              hoveredIssue === issue.id || selectedIssue === issue.id
-                ? "scale(1.25)"
-                : "scale(1)",
-            color:
-              hoveredIssue === issue.id || selectedIssue === issue.id
-                ? "primary.main"
-                : "text.primary",
-            left: `${(issue.coordinates.lng + 74.01) * 1000}px`,
-            top: `${(issue.coordinates.lat - 40.71) * 1000}px`,
-          }}
-        >
-          <MapPin />
-        </Box>
-      ))}
-    </Box>
-  );
-
   return (
     <ThemeProvider theme={darkTheme}>
       <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
@@ -243,16 +232,28 @@ const SafetyApp = () => {
         </AppBar>
 
         <Container maxWidth="xl" sx={{ mt: 3 }}>
-          <Box
-            sx={{
-              display: "flex",
-              gap: 3,
-              height: "calc(100vh - 100px)",
-            }}
-          >
+          <Box sx={{ display: "flex", gap: 3, height: "calc(100vh - 100px)" }}>
             <Box sx={{ width: "75%", height: "100%" }}>
               <MapContainer elevation={3}>
-                <MapPlaceholder />
+                <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+                  <Map
+                    defaultZoom={13}
+                    center={mapCenter}
+                    mapId="YOUR_MAP_ID"
+                    style={{ width: "100%", height: "100%" }}
+                  >
+                    {DUMMY_ISSUES.map((issue) => (
+                      <MapMarker
+                        key={issue.id}
+                        position={issue.coordinates}
+                        isHighlighted={
+                          hoveredIssue === issue.id ||
+                          selectedIssue === issue.id
+                        }
+                      />
+                    ))}
+                  </Map>
+                </APIProvider>
               </MapContainer>
             </Box>
 
@@ -269,7 +270,7 @@ const SafetyApp = () => {
                       key={issue.id}
                       onMouseEnter={() => setHoveredIssue(issue.id)}
                       onMouseLeave={() => setHoveredIssue(null)}
-                      onClick={() => setSelectedIssue(issue.id)}
+                      onClick={() => handleIssueSelect(issue)}
                       sx={{
                         bgcolor:
                           hoveredIssue === issue.id ||
